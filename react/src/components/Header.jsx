@@ -14,7 +14,7 @@ function Header() {
 
     const navigate = useNavigate();
 
-    const { signOut } = useAuthenticator()
+    const { signOut } = useAuthenticator();
 
     const [openSettings, setOpenSettings] = useState(false);
 
@@ -61,8 +61,8 @@ function Header() {
                 <DialogTitle>Change Password</DialogTitle>
                 <DialogContent>
                     <AccountSettings.ChangePassword onSuccess={() => {
-                        alert('Password is successfully changed!')
-                        setOpenSettings(false)
+                        alert('Password is successfully changed!');
+                        setOpenSettings(false);
                     }} />
                 </DialogContent>
                 <DialogActions>
@@ -85,4 +85,4 @@ function Header() {
         </Box>
     );
 }
-export default Header
+export default Header;
