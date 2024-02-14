@@ -13,7 +13,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const dynamoose_1 = __importDefault(require("dynamoose"));
 const Exceptions_1 = require("./src/excpetions/Exceptions");
 const AdminLinksService_1 = __importDefault(require("./src/services/admin/links/AdminLinksService"));
 const AdminSocialIconsService_1 = __importDefault(require("./src/services/admin/social/AdminSocialIconsService"));
@@ -22,19 +21,14 @@ const PublicPageService_1 = require("./src/services/public/PublicPageService");
 const Auth_1 = require("./src/utils/Auth");
 const app = (0, express_1.default)();
 const serverless = require('serverless-http');
-const cors = require("cors");
 const fileUpload = require('express-fileupload');
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use(fileUpload());
-app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'DELETE'],
-}));
 app.use(function (req, res, next) {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,PUT");
     res.setHeader("Access-Control-Allow-Headers", "*");
     next();
 });
@@ -44,9 +38,28 @@ const adminServices = {
     pages: new AdminPagesService_1.default(),
 };
 const publicService = new PublicPageService_1.PublicPageService();
-app.get('/:id', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+app.get('/page/get/:pageId', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const response = yield publicService.getPageData(req.params.id);
+        const response = yield publicService.getPageData(req.params.pageId);
+        res.json(response);
+    }
+    catch (err) {
+        catchErrors(err, next);
+    }
+}));
+app.put('/:pageId/click/link/:linkId', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const response = yield publicService.incrementLinkViews(req.params.pageId, req.params.linkId);
+        res.json(response);
+    }
+    catch (err) {
+        catchErrors(err, next);
+    }
+}));
+app.get('/admin/page/get/:pageId', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const token = yield (0, Auth_1.validateToken)(req.headers.authorization);
+        const response = yield adminServices.pages.getPage(req.params.pageId, token.username);
         res.json(response);
     }
     catch (err) {
@@ -238,9 +251,3 @@ module.exports.handler = (event, context, callback) => {
     const response = handler(event, context, callback);
     return response;
 };
-// Create new DynamoDB instance
-const ddb = new dynamoose_1.default.aws.ddb.DynamoDB({
-    "region": "us-east-1"
-});
-// Set DynamoDB instance to the Dynamoose DDB instance
-dynamoose_1.default.aws.ddb.set(ddb);

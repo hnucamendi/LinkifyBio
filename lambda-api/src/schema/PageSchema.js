@@ -5,9 +5,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Page = void 0;
 const dynamoose_1 = __importDefault(require("dynamoose"));
-const dotenv = require('dotenv');
-dotenv.config();
-dynamoose_1.default.Table.defaults.set({ create: false });
+require('dotenv').config(process.env.NODE_ENV === 'local' && { path: '.env.local' });
+if (process.env.NODE_ENV === 'local') {
+    dynamoose_1.default.Table.defaults.set({ create: true });
+    dynamoose_1.default.aws.ddb.set(new dynamoose_1.default.aws.ddb.DynamoDB({
+        endpoint: process.env.LOCALSTACK_ENDPOINT,
+        credentials: {
+            accessKeyId: "test",
+            secretAccessKey: "test"
+        }
+    }));
+}
+else {
+    dynamoose_1.default.Table.defaults.set({ create: false });
+    dynamoose_1.default.aws.ddb.set(new dynamoose_1.default.aws.ddb.DynamoDB({
+        region: "us-east-1"
+    }));
+}
 const PageSchema = new dynamoose_1.default.Schema({
     id: {
         type: String,
@@ -59,6 +73,24 @@ const PageSchema = new dynamoose_1.default.Schema({
             textColor: String,
             socialIconsColor: String
         },
+    },
+    linkViews: {
+        type: Array,
+        schema: [
+            {
+                type: Object,
+                schema: {
+                    id: String,
+                    views: Number
+                }
+            }
+        ]
+    },
+    pageViews: {
+        type: Object,
+        schema: {
+            views: Number
+        }
     },
     verified: {
         type: Boolean,

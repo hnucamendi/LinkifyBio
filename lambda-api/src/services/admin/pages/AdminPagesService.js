@@ -14,12 +14,65 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const RequestValidationUtils_1 = require("../../../utils/RequestValidationUtils");
 const client_s3_1 = require("@aws-sdk/client-s3");
-const crypto_1 = __importDefault(require("crypto"));
 const PageSchema_1 = require("../../../schema/PageSchema");
 const CoreUtils_1 = require("../../../utils/CoreUtils");
 const Exceptions_1 = require("../../../excpetions/Exceptions");
-const s3Client = new client_s3_1.S3Client({ region: 'us-east-1' });
+const crypto_1 = __importDefault(require("crypto"));
+const s3Client = process.env.NODE_ENV === 'local' ?
+    new client_s3_1.S3Client({
+        region: 'us-east-1',
+        endpoint: process.env.LOCALSTACK_ENDPOINT,
+        credentials: {
+            accessKeyId: 'test',
+            secretAccessKey: 'test',
+        },
+        forcePathStyle: true,
+    })
+    : new client_s3_1.S3Client({ region: 'us-east-1' });
 class AdminPagesService {
+    getPage(pageId, owner) {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function* () {
+            (0, CoreUtils_1.validatePageId)(pageId);
+            try {
+                const data = yield PageSchema_1.Page.get({ id: pageId, owner });
+                const bioInfo = {
+                    name: data.bioInfo.name,
+                    imageUrl: data.bioInfo.imageUrl,
+                    descriptionTitle: data.bioInfo.descriptionTitle,
+                };
+                const links = (_a = data.links) !== null && _a !== void 0 ? _a : []
+                    .map((link) => ({
+                    id: link.id,
+                    name: link.name,
+                    url: link.url,
+                    updatedAt: link.updatedAt
+                }));
+                const socialMediaLinks = (_b = data.socialMediaLinks) !== null && _b !== void 0 ? _b : []
+                    .map((link) => ({
+                    id: link.id,
+                    name: link.name,
+                    url: link.url,
+                    updatedAt: link.updatedAt
+                }));
+                return {
+                    id: data.id,
+                    bioInfo,
+                    links,
+                    socialMediaLinks,
+                    pageColors: data.pageColors,
+                    verified: data.verified,
+                    linkViews: data.linkViews,
+                    pageViews: data.pageViews,
+                    createdAt: data.createdAt,
+                };
+            }
+            catch (error) {
+                console.log(error);
+                throw new Exceptions_1.GeneralException("An error ocurred when fetching page.");
+            }
+        });
+    }
     createPage(request, owner) {
         return __awaiter(this, void 0, void 0, function* () {
             (0, RequestValidationUtils_1.validateCreatePageRequest)(request);
@@ -46,6 +99,8 @@ class AdminPagesService {
                 },
                 links: [],
                 socialMediaLinks: [],
+                pageViews: { views: 0 },
+                linkViews: [],
                 createdAt: new Date().toISOString(),
                 verified: false,
             };
@@ -161,7 +216,7 @@ class AdminPagesService {
             // Uploading files to the bucket
             yield s3Client.send(new client_s3_1.PutObjectCommand(params));
             return {
-                imageUrl: `https://${process.env.CDN_DOMAIN_NAME}/${encodeURIComponent(hashedFileName)}`
+                imageUrl: (0, CoreUtils_1.getProfileImageUrl)(hashedFileName)
             };
         });
     }

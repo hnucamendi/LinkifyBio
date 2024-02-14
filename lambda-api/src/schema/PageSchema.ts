@@ -1,10 +1,27 @@
 import dynamoose from 'dynamoose';
-import { IPage, IPageInfo, IPageLink } from '../interfaces/IPage';
+import { IPage } from '../interfaces/IPage';
 import { Item } from 'dynamoose/dist/Item';
-const dotenv = require('dotenv');
-dotenv.config();
 
-dynamoose.Table.defaults.set({create: false});
+require('dotenv').config(process.env.NODE_ENV === 'local' && { path: '.env.local' });
+
+if (process.env.NODE_ENV === 'local') {
+
+    dynamoose.Table.defaults.set({ create: true });
+    dynamoose.aws.ddb.set(
+        new dynamoose.aws.ddb.DynamoDB({
+        endpoint: process.env.LOCALSTACK_ENDPOINT,
+        credentials: {
+            accessKeyId: "test",
+            secretAccessKey: "test"
+        }
+    }));
+
+} else {
+    dynamoose.Table.defaults.set({ create: false });
+    dynamoose.aws.ddb.set(new dynamoose.aws.ddb.DynamoDB({
+        region: "us-east-1"
+    }));
+}
 
 export interface PageModel extends IPage, Item { }
 
@@ -59,6 +76,24 @@ const PageSchema = new dynamoose.Schema({
             textColor: String,
             socialIconsColor: String
         },
+    },
+    linkViews: {
+        type: Array,
+        schema: [
+            {
+                type: Object,
+                schema: {
+                    id: String,
+                    views: Number
+                }
+            }
+        ]
+    },
+    pageViews: {
+        type: Object,
+        schema: {
+            views: Number
+        }
     },
     verified: {
         type: Boolean,

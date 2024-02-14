@@ -1,18 +1,19 @@
 import Button from '@mui/material-next/Button';
 import { Container, Avatar, CircularProgress, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
-import { getBioData } from '../../api/public/PublicApi';
+import { getPublicPage } from '../../api/public/PublicApi';
 import React from 'react';
 import { SocialIcon } from 'react-social-icons/component'
 import 'react-social-icons'
 import { Helmet } from 'react-helmet';
 import { DefaultPageColors } from '../../constants/DefaultColors';
-
+import { incrementClickView } from '../../api/public/PublicApi';
 export default class PublicPage extends React.Component {
 
     defaultColors = DefaultPageColors;
 
     state = {
+        pageId: '',
         bioInfo: {},
         links: [],
         socialMediaLinks: [],
@@ -24,7 +25,8 @@ export default class PublicPage extends React.Component {
 
     componentDidMount() {
         const id = window.location.href.split('/')[3]
-        getBioData(id).then((data) => {
+        getPublicPage(id).then((data) => {
+            this.setState({ pageId: data.id });
             this.setState({ bioInfo: data.bioInfo });
             this.setState({ links: data.links });
             this.setState({ socialMediaLinks: data.socialMediaLinks });
@@ -45,7 +47,6 @@ export default class PublicPage extends React.Component {
     }
 
     setBackgroundColor = (color) => {
-        console.log(color)
         document.body.style.backgroundColor = color;
     }
 
@@ -106,6 +107,9 @@ export default class PublicPage extends React.Component {
                                                     '&:hover': {
                                                         backgroundColor: this.state.pageColors.buttonHoverColor,
                                                     }
+                                                }}
+                                                onClick={() => {
+                                                    incrementClickView(this.state.pageId, link.id)
                                                 }}
                                             >
                                                 <SocialIcon url={link.url}  bgColor="transparent" fgColor={this.state.pageColors.buttonLinkIconColor} style={{ height: 30, width: 30 }} />

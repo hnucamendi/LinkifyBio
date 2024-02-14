@@ -1,5 +1,4 @@
 import express, { NextFunction, Request, Response } from 'express';
-import dynamoose from 'dynamoose';
 import { NotFoundException, Unauthorized } from './src/excpetions/Exceptions';
 import AdminLinksService from './src/services/admin/links/AdminLinksService';
 import AdminSocialIconsService from './src/services/admin/social/AdminSocialIconsService';
@@ -9,25 +8,19 @@ import { validateToken } from './src/utils/Auth';
 
 const app = express();
 const serverless = require('serverless-http');
-const cors = require("cors");
 const fileUpload = require('express-fileupload');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(fileUpload());
 
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'DELETE'],
-}));
-
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,PUT");
   res.setHeader("Access-Control-Allow-Headers", "*");
   next();
-}); 
+});
 
 const adminServices = {
   links: new AdminLinksService(),
@@ -38,9 +31,28 @@ const adminServices = {
 const publicService = new PublicPageService();
 
 
-app.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+app.get('/page/get/:pageId', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const response = await publicService.getPageData(req.params.id);
+    const response = await publicService.getPageData(req.params.pageId);
+    res.json(response);
+  } catch (err) {
+    catchErrors(err, next);
+  }
+});
+
+app.put('/:pageId/click/link/:linkId', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const response = await publicService.incrementLinkViews(req.params.pageId, req.params.linkId);
+    res.json(response);
+  } catch (err) {
+    catchErrors(err, next);
+  }
+});
+
+app.get('/admin/page/get/:pageId', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = await validateToken(req.headers.authorization);
+    const response = await adminServices.pages.getPage(req.params.pageId, token.username);
     res.json(response);
   } catch (err) {
     catchErrors(err, next);
@@ -208,7 +220,7 @@ app.get('/admin/page/:id/availability', async (req: Request, res: Response, next
 app.post('/admin/page/:id/update/colors', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = await validateToken(req.headers.authorization);
-    const response = await adminServices.pages.updatePageColors(req.params.id, req.body,token.username);
+    const response = await adminServices.pages.updatePageColors(req.params.id, req.body, token.username);
     res.json(response);
   } catch (err) {
     catchErrors(err, next);
@@ -238,22 +250,14 @@ const catchErrors = (error: unknown, next: NextFunction) => {
 const handler = serverless(app);
 
 const startServer = async () => {
-    app.listen(3500, () => {
-      console.log("listening on port 3500!");
-    });
+  app.listen(3500, () => {
+    console.log("listening on port 3500!");
+  });
 }
 
 startServer();
 
 module.exports.handler = (event: any, context: any, callback: any) => {
-    const response = handler(event, context, callback);
-    return response;
+  const response = handler(event, context, callback);
+  return response;
 };
-
-// Create new DynamoDB instance
-const ddb = new dynamoose.aws.ddb.DynamoDB({
-  "region": "us-east-1"
-});
-
-// Set DynamoDB instance to the Dynamoose DDB instance
-dynamoose.aws.ddb.set(ddb);
