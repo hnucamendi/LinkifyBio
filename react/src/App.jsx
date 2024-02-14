@@ -1,10 +1,10 @@
 
 import PublicPage from './pages/public/PublicPage';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import {BrowserRouter, Route, Routes} from 'react-router-dom';
 
 
-import { Authenticator } from '@aws-amplify/ui-react';
-import { Amplify } from 'aws-amplify';
+import {Authenticator} from '@aws-amplify/ui-react';
+import {Amplify} from 'aws-amplify';
 import '@aws-amplify/ui-react/styles.css';
 
 import PublicMainPage from './pages/public/PublicMainPage';
@@ -22,11 +22,11 @@ export default function App() {
         <Route path="/" element={<PublicMainPage />} />
         <Route path="/:id" element={<PublicPage />} />
         <Route path="/console/*" element={
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh'}}>
 
-            { import.meta.env.VITE_NODE_ENV === 'local' ? <ConsoleRoutes /> : 
-            
-            <Authenticator loginMechanisms={['email']} socialProviders={["google"]}>
+            { import.meta.env.VITE_NODE_ENV === 'local' ? <ConsoleRoutes /> :
+
+            <Authenticator loginMechanisms={['email']} socialProviders={['google']}>
               <ConsoleRoutes />
             </Authenticator> }
 
@@ -34,11 +34,6 @@ export default function App() {
         } />
       </Routes>
     </BrowserRouter>
-
-
-
-
-
 
 
   );
