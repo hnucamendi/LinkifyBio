@@ -7,8 +7,14 @@ import HeaderPublic from '../../components/HeaderPublic';
 import {Hub} from 'aws-amplify/utils';
 import {getCurrentUser} from '@aws-amplify/auth';
 import Typography from '@mui/material/Typography';
+<<<<<<< HEAD
 import {useTheme} from '@mui/material/styles';
 import {Helmet} from 'react-helmet';
+=======
+import { useTheme } from '@mui/material/styles';
+import { Helmet } from 'react-helmet';
+import { SocialIcon } from 'react-social-icons';
+>>>>>>> main
 
 export default function PublicMainPage() {
   const navigate = useNavigate();
@@ -71,7 +77,14 @@ export default function PublicMainPage() {
         <meta name="description" content="Create a centralized public page for all your social media links. Share this link in your bio and let your followers access all your platforms from one place."/>
       </Helmet>
 
+<<<<<<< HEAD
       <HeaderPublic />
+=======
+            <Helmet>
+                <title>LinkifyBio: A Public Page for your Links in Bio</title>
+                <meta name="description" content="Create a centralized public page for all your social media links. Share this link in your bio and let your followers access all your platforms from one place." />
+            </Helmet>
+>>>>>>> main
 
       <Box display="flex" justifyContent="center" alignItems="center" marginTop={[2, 10]}>
 
@@ -126,6 +139,7 @@ export default function PublicMainPage() {
 
           }
 
+<<<<<<< HEAD
           {showAuth &&
                         <Authenticator loginMechanisms={['email']} socialProviders={['google']} />
           }
@@ -135,3 +149,19 @@ export default function PublicMainPage() {
     </Container>
   );
 }
+=======
+                    { showAuth &&
+                        <Authenticator loginMechanisms={['email']} socialProviders={["google"]} />
+                    }
+
+                    <Button variant="outlined" sx={{ color: "black", height: 45, marginTop: 5 }} size="small" onClick={() => window.open('https://github.com/michael-ortiz/LinkifyBio', '_blank')}>
+                        <SocialIcon url="https://github.com/michael-ortiz/LinkifyBio" bgColor="transparent" fgColor='black' />
+                        Open Source Project
+                    </Button>
+
+                </Box>
+            </Box>
+        </Container>
+    );
+}
+>>>>>>> main
